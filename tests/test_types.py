@@ -87,6 +87,14 @@ class InstancesTestCase(BaseTestCase):
         with self._patch_connection():
             self.assertEquals(ec2.instances.get(id='i-abc0').id, 'i-abc0')
 
+    def test_create(self):
+        with self.assertRaises(NotImplementedError):
+            ec2.instances.create('')
+
+    def test_delete(self):
+        with self.assertRaises(NotImplementedError):
+            ec2.instances.delete('')
+
 
 class SecurityGroupsTestCase(BaseTestCase):
     def test_all(self):
@@ -161,6 +169,16 @@ class SecurityGroupsTestCase(BaseTestCase):
         with self._patch_connection():
             self.assertEquals(ec2.security_groups.get(id='sg-abc0').id, 'sg-abc0')
 
+    def test_create(self):
+        with self._patch_connection():
+            sg = ec2.security_groups.create('sg-99', 'Group 99')
+            self.assertEquals(sg.id, 'sg-xyz0')
+
+    def test_delete(self):
+        with self._patch_connection():
+            sg = ec2.security_groups.create('sg-99', 'Group 99')
+            self.assertTrue(ec2.vpcs.delete(sg.id))
+
 
 class VPCTestCase(BaseTestCase):
     def test_all(self):
@@ -228,3 +246,13 @@ class VPCTestCase(BaseTestCase):
     def test_get(self):
         with self._patch_vpc_connection():
             self.assertEquals(ec2.vpcs.get(id='vpc-abc0').id, 'vpc-abc0')
+
+    def test_create(self):
+        with self._patch_vpc_connection():
+            vpc = ec2.vpcs.create('10.10.10.0/16')
+            self.assertEquals(vpc.id, 'vpc-xyz0')
+
+    def test_delete(self):
+        with self._patch_vpc_connection():
+            vpc = ec2.vpcs.create('10.10.10.0/16')
+            self.assertTrue(ec2.vpcs.delete(vpc.id))

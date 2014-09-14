@@ -43,6 +43,14 @@ class BaseTestCase(unittest.TestCase):
             sg.description = 'Group %d' % i
             security_groups.append(sg)
 
+        created_sg = SecurityGroup()
+        created_sg.id = 'sg-xyz0'
+        created_sg.name = 'group-99'
+        created_sg.description = 'Group 99'
+
+        for sg in security_groups:
+            sg.delete = MagicMock(return_value=True)
+
         vpcs = []
         for i in xrange(2):
             vpc = VPC()
@@ -59,12 +67,25 @@ class BaseTestCase(unittest.TestCase):
             vpc.dhcp_options_id = 'dopt-abc%d' % i
             vpcs.append(vpc)
 
+        created_vpc = VPC()
+        created_vpc.id = 'vpc-xyz0'
+        created_vpc.state = 'pending'
+        created_vpc.is_default = False
+        created_vpc.instance_tenancy = 'default'
+        created_vpc.cidr_block = '10.10.10.0/16'
+        created_vpc.dhcp_options_id = 'dopt-xyz0'
+
         self.connection = MagicMock()
         self.connection.get_all_instances = MagicMock(return_value=reservations)
         self.connection.get_all_security_groups = MagicMock(return_value=security_groups)
+        self.connection.create_security_group = MagicMock(return_value=created_sg)
 
         self.vpc_connection = MagicMock()
         self.vpc_connection.get_all_vpcs = MagicMock(return_value=vpcs)
+        self.vpc_connection.create_vpc = MagicMock(return_value=created_vpc)
+
+        for v in vpcs:
+            v.delete = MagicMock(return_value=True)
 
     def tearDown(self):
         ec2.credentials.ACCESS_KEY_ID = None

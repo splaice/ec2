@@ -90,3 +90,27 @@ class objects_base(object):
             del cls._cache
         except AttributeError:
             pass
+
+    @classmethod
+    def create(cls, *args, **kwargs):
+        """
+        Generic create()
+
+        >>> ec2.vpcs.create('10.10.10.0/16')
+        <VPC: ...>
+        """
+        result = cls._create(*args, **kwargs)
+        cls.clear()
+        return result
+
+    @classmethod
+    def delete(cls, *args, **kwargs):
+        """
+        Generic delete()
+
+        >>> ec2.vpcs.delete('vpc-123')
+        True
+        """
+        result = cls._delete(*args, **kwargs)
+        cls.clear()
+        return result

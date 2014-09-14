@@ -31,3 +31,6 @@ env
 
 # vim
 *.swp
+
+# ec2 credentials
+credentials.csv

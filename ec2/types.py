@@ -21,6 +21,14 @@ class instances(objects_base):
             for i in r.instances
         ]
 
+    @classmethod
+    def _create(cls, args, **kwargs):
+        raise NotImplementedError("Coming Soon!")
+
+    @classmethod
+    def _delete(cls, args, **kwargs):
+        raise NotImplementedError("Coming Soon!")
+
 
 class security_groups(objects_base):
     "Singleton to stem off queries for security groups"
@@ -30,6 +38,16 @@ class security_groups(objects_base):
         "Grab all AWS Security Groups"
         return get_connection().get_all_security_groups()
 
+    @classmethod
+    def _create(cls, name, description, vpc_id=None, dry_run=False):
+        return get_connection().create_security_group(
+            name, description, vpc_id=vpc_id, dry_run=dry_run)
+
+    @classmethod
+    def _delete(cls, name=None, group_id=None, dry_run=False):
+        return get_connection().delete_security_group(
+            name=name, group_id=group_id, dry_run=dry_run)
+
 
 class vpcs(objects_base):
     "Singleton to stem off queries for virtual private clouds"
@@ -38,3 +56,14 @@ class vpcs(objects_base):
     def _all(cls):
         "Grab all AWS Virtual Private Clouds"
         return get_vpc_connection().get_all_vpcs()
+
+    @classmethod
+    def _create(cls, cidr_block, instance_tenancy=None, dry_run=False):
+        "Create AWS Virtual Private Clouds"
+        return get_vpc_connection().create_vpc(
+            cidr_block, instance_tenancy=instance_tenancy, dry_run=dry_run)
+
+    @classmethod
+    def _delete(cls, id, dry_run=False):
+        "Delete AWS Virtual Private Clouds"
+        return get_vpc_connection().delete_vpc(id, dry_run=dry_run)
