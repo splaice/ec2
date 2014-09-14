@@ -1,25 +1,20 @@
 """
-ec2.types
-~~~~~~~~~
+ec2.models.managers
+~~~~~~~~
 
 :copyright: (c) 2014 by Matt Robenolt.
 :license: BSD, see LICENSE for more details.
 """
 
+from .base import objects_base
 from ec2.connection import get_connection, get_vpc_connection
-from ec2.base import objects_base
 
 
-class instances(objects_base):
-    "Singleton to stem off queries for instances"
-
+class BaseManager(objects_base):
+    """ """
     @classmethod
-    def _all(cls):
-        "Grab all AWS instances"
-        return [
-            i for r in get_connection().get_all_instances()
-            for i in r.instances
-        ]
+    def _all(cls, args, **kwargs):
+        raise NotImplementedError("Coming Soon!")
 
     @classmethod
     def _create(cls, args, **kwargs):
@@ -30,9 +25,27 @@ class instances(objects_base):
         raise NotImplementedError("Coming Soon!")
 
 
-class security_groups(objects_base):
-    "Singleton to stem off queries for security groups"
+class InstanceManager(BaseManager):
+    """ """
+    @classmethod
+    def _all(cls):
+        "Grab all AWS instances"
+        reservations = get_connection().get_all_instances()
+        instances = [i for r in reservations for i in r.instances]
+        return instances
 
+
+class ReservationManager(BaseManager):
+    """ """
+
+    @classmethod
+    def _all(cls):
+        "Grab all AWS reservations"
+        reservations = get_connection().get_all_reservations()
+        return reservations
+
+
+class SecurityGroupManager(BaseManager):
     @classmethod
     def _all(cls):
         "Grab all AWS Security Groups"
@@ -49,9 +62,8 @@ class security_groups(objects_base):
             name=name, group_id=group_id, dry_run=dry_run)
 
 
-class vpcs(objects_base):
-    "Singleton to stem off queries for virtual private clouds"
-
+class VPCManager(BaseManager):
+    """ """
     @classmethod
     def _all(cls):
         "Grab all AWS Virtual Private Clouds"

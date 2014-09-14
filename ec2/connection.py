@@ -14,9 +14,19 @@ _connection = None
 _vpc_connection = None
 
 
+def patch_boto():
+    import boto.ec2.connection
+    from .models.models import Instance, Reservation, SecurityGroup, VPC
+    boto.ec2.connection.Instance = Instance
+    boto.ec2.connection.Reservation = Reservation
+    boto.ec2.connection.SecurityGroup = SecurityGroup
+    boto.ec2.connection.VPC = VPC
+
+
 def get_connection():
     "Cache a global connection object to be used by all classes"
     global _connection
+    patch_boto()
     if _connection is None:
         _connection = boto.ec2.connect_to_region(**credentials())
     return _connection
@@ -24,6 +34,7 @@ def get_connection():
 
 def get_vpc_connection():
     global _vpc_connection
+    patch_boto()
     if _vpc_connection is None:
         _vpc_connection = boto.vpc.connect_to_region(**credentials())
     return _vpc_connection

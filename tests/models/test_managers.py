@@ -1,258 +1,262 @@
-from .base import BaseTestCase
+from ..base import BaseTestCase
 
-import ec2
+from ec2.models.managers import (
+    InstanceManager,
+    SecurityGroupManager,
+    VPCManager)
 
 
 class InstancesTestCase(BaseTestCase):
     def test_all(self):
         "instances.all() should iterate over all reservations and collect all instances, then cache the results"
         with self._patch_connection() as mock:
-            instances = ec2.instances.all()
+            instances = InstanceManager.all()
             self.assertEquals(4, len(instances))
             # all() should cache the connection and list of instances
             # so when calling a second time, _connect() shouldn't
             # be called
-            ec2.instances.all()
+            InstanceManager.all()
             mock.assert_called_once()  # Should only be called once from the initial _connect
 
     def test_filters_integration(self):
         with self._patch_connection():
-            instances = ec2.instances.filter(state='crap')
+            instances = InstanceManager.filter(state='crap')
             self.assertEquals(0, len(instances))
 
-            instances = ec2.instances.filter(state='running')
+            instances = InstanceManager.filter(state='running')
             self.assertEquals(2, len(instances))
             self.assertEquals('running', instances[0].state)
             self.assertEquals('running', instances[1].state)
 
-            instances = ec2.instances.filter(state='stopped')
+            instances = InstanceManager.filter(state='stopped')
             self.assertEquals(2, len(instances))
             self.assertEquals('stopped', instances[0].state)
             self.assertEquals('stopped', instances[1].state)
 
-            instances = ec2.instances.filter(id__exact='i-abc0')
+            instances = InstanceManager.filter(id__exact='i-abc0')
             self.assertEquals(1, len(instances))
 
-            instances = ec2.instances.filter(id__iexact='I-ABC0')
+            instances = InstanceManager.filter(id__iexact='I-ABC0')
             self.assertEquals(1, len(instances))
 
-            instances = ec2.instances.filter(id__like=r'^i\-abc\d$')
+            instances = InstanceManager.filter(id__like=r'^i\-abc\d$')
             self.assertEquals(4, len(instances))
 
-            instances = ec2.instances.filter(id__ilike=r'^I\-ABC\d$')
+            instances = InstanceManager.filter(id__ilike=r'^I\-ABC\d$')
             self.assertEquals(4, len(instances))
 
-            instances = ec2.instances.filter(id__contains='1')
+            instances = InstanceManager.filter(id__contains='1')
             self.assertEquals(1, len(instances))
 
-            instances = ec2.instances.filter(id__icontains='ABC')
+            instances = InstanceManager.filter(id__icontains='ABC')
             self.assertEquals(4, len(instances))
 
-            instances = ec2.instances.filter(id__startswith='i-')
+            instances = InstanceManager.filter(id__startswith='i-')
             self.assertEquals(4, len(instances))
 
-            instances = ec2.instances.filter(id__istartswith='I-')
+            instances = InstanceManager.filter(id__istartswith='I-')
             self.assertEquals(4, len(instances))
 
-            instances = ec2.instances.filter(id__endswith='c0')
+            instances = InstanceManager.filter(id__endswith='c0')
             self.assertEquals(1, len(instances))
 
-            instances = ec2.instances.filter(id__iendswith='C0')
+            instances = InstanceManager.filter(id__iendswith='C0')
             self.assertEquals(1, len(instances))
 
-            instances = ec2.instances.filter(id__startswith='i-', name__endswith='-0')
+            instances = InstanceManager.filter(id__startswith='i-', name__endswith='-0')
             self.assertEquals(1, len(instances))
 
-            instances = ec2.instances.filter(id__isnull=False)
+            instances = InstanceManager.filter(id__isnull=False)
             self.assertEquals(4, len(instances))
 
-            instances = ec2.instances.filter(id__isnull=True)
+            instances = InstanceManager.filter(id__isnull=True)
             self.assertEquals(0, len(instances))
 
     def test_get_raises(self):
         with self._patch_connection():
             self.assertRaises(
-                ec2.instances.MultipleObjectsReturned,
-                ec2.instances.get,
+                InstanceManager.MultipleObjectsReturned,
+                InstanceManager.get,
                 id__startswith='i'
             )
 
             self.assertRaises(
-                ec2.instances.DoesNotExist,
-                ec2.instances.get,
+                InstanceManager.DoesNotExist,
+                InstanceManager.get,
                 name='crap'
             )
 
     def test_get(self):
         with self._patch_connection():
-            self.assertEquals(ec2.instances.get(id='i-abc0').id, 'i-abc0')
+            self.assertEquals(InstanceManager.get(id='i-abc0').id, 'i-abc0')
 
     def test_create(self):
         with self.assertRaises(NotImplementedError):
-            ec2.instances.create('')
+            InstanceManager.create('')
 
     def test_delete(self):
         with self.assertRaises(NotImplementedError):
-            ec2.instances.delete('')
+            InstanceManager.delete('')
 
 
-class SecurityGroupsTestCase(BaseTestCase):
+class SecurityGroupManagerTestCase(BaseTestCase):
     def test_all(self):
         with self._patch_connection() as mock:
-            groups = ec2.security_groups.all()
+            groups = SecurityGroupManager.all()
+            print groups
             self.assertEquals(2, len(groups))
             # all() should cache the connection and list of instances
             # so when calling a second time, _connect() shouldn't
             # be called
-            ec2.security_groups.all()
+            SecurityGroupManager.all()
             mock.assert_called_once()
 
     def test_filters_integration(self):
         with self._patch_connection():
-            groups = ec2.security_groups.filter(name='crap')
+            groups = SecurityGroupManager.filter(name='crap')
             self.assertEquals(0, len(groups))
 
-            groups = ec2.security_groups.filter(id__exact='sg-abc0')
+            groups = SecurityGroupManager.filter(id__exact='sg-abc0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.security_groups.filter(id__iexact='SG-ABC0')
+            groups = SecurityGroupManager.filter(id__iexact='SG-ABC0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.security_groups.filter(id__like=r'^sg\-abc\d$')
+            groups = SecurityGroupManager.filter(id__like=r'^sg\-abc\d$')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.security_groups.filter(id__ilike=r'^SG\-ABC\d$')
+            groups = SecurityGroupManager.filter(id__ilike=r'^SG\-ABC\d$')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.security_groups.filter(id__contains='1')
+            groups = SecurityGroupManager.filter(id__contains='1')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.security_groups.filter(id__icontains='ABC')
+            groups = SecurityGroupManager.filter(id__icontains='ABC')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.security_groups.filter(id__startswith='sg-')
+            groups = SecurityGroupManager.filter(id__startswith='sg-')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.security_groups.filter(id__istartswith='SG-')
+            groups = SecurityGroupManager.filter(id__istartswith='SG-')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.security_groups.filter(id__endswith='c0')
+            groups = SecurityGroupManager.filter(id__endswith='c0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.security_groups.filter(id__iendswith='C0')
+            groups = SecurityGroupManager.filter(id__iendswith='C0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.security_groups.filter(id__startswith='sg-', name__endswith='-0')
+            groups = SecurityGroupManager.filter(id__startswith='sg-', name__endswith='-0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.security_groups.filter(id__isnull=False)
+            groups = SecurityGroupManager.filter(id__isnull=False)
             self.assertEquals(2, len(groups))
 
-            groups = ec2.security_groups.filter(id__isnull=True)
+            groups = SecurityGroupManager.filter(id__isnull=True)
             self.assertEquals(0, len(groups))
 
     def test_get_raises(self):
         with self._patch_connection():
             self.assertRaises(
-                ec2.security_groups.MultipleObjectsReturned,
-                ec2.security_groups.get,
+                SecurityGroupManager.MultipleObjectsReturned,
+                SecurityGroupManager.get,
                 id__startswith='sg'
             )
 
             self.assertRaises(
-                ec2.security_groups.DoesNotExist,
-                ec2.security_groups.get,
+                SecurityGroupManager.DoesNotExist,
+                SecurityGroupManager.get,
                 name='crap'
             )
 
     def test_get(self):
         with self._patch_connection():
-            self.assertEquals(ec2.security_groups.get(id='sg-abc0').id, 'sg-abc0')
+            self.assertEquals(SecurityGroupManager.get(id='sg-abc0').id, 'sg-abc0')
 
     def test_create(self):
         with self._patch_connection():
-            sg = ec2.security_groups.create('sg-99', 'Group 99')
+            sg = SecurityGroupManager.create('sg-99', 'Group 99')
             self.assertEquals(sg.id, 'sg-xyz0')
 
     def test_delete(self):
         with self._patch_connection():
-            sg = ec2.security_groups.create('sg-99', 'Group 99')
-            self.assertTrue(ec2.vpcs.delete(sg.id))
+            sg = SecurityGroupManager.create('sg-99', 'Group 99')
+            self.assertTrue(SecurityGroupManager.delete(sg.id))
 
 
 class VPCTestCase(BaseTestCase):
     def test_all(self):
         with self._patch_vpc_connection() as mock:
-            vpcs = ec2.vpcs.all()
+            vpcs = VPCManager.all()
             self.assertEquals(2, len(vpcs))
-            ec2.vpcs.all()
+            VPCManager.all()
             mock.assert_called_once()
 
     def test_filters_integration(self):
         with self._patch_vpc_connection():
-            groups = ec2.vpcs.filter(id__exact='vpc-abc0')
+            groups = VPCManager.filter(id__exact='vpc-abc0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.vpcs.filter(id__iexact='VPC-ABC0')
+            groups = VPCManager.filter(id__iexact='VPC-ABC0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.vpcs.filter(id__like=r'^vpc\-abc\d$')
+            groups = VPCManager.filter(id__like=r'^vpc\-abc\d$')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.vpcs.filter(id__ilike=r'^VPC\-ABC\d$')
+            groups = VPCManager.filter(id__ilike=r'^VPC\-ABC\d$')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.vpcs.filter(id__contains='1')
+            groups = VPCManager.filter(id__contains='1')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.vpcs.filter(id__icontains='ABC')
+            groups = VPCManager.filter(id__icontains='ABC')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.vpcs.filter(id__startswith='vpc-')
+            groups = VPCManager.filter(id__startswith='vpc-')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.vpcs.filter(id__istartswith='vpc-')
+            groups = VPCManager.filter(id__istartswith='vpc-')
             self.assertEquals(2, len(groups))
 
-            groups = ec2.vpcs.filter(id__endswith='c0')
+            groups = VPCManager.filter(id__endswith='c0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.vpcs.filter(id__iendswith='C0')
+            groups = VPCManager.filter(id__iendswith='C0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.vpcs.filter(id__startswith='vpc-', dhcp_options_id__endswith='abc0')
+            groups = VPCManager.filter(id__startswith='vpc-', dhcp_options_id__endswith='abc0')
             self.assertEquals(1, len(groups))
 
-            groups = ec2.vpcs.filter(id__isnull=False)
+            groups = VPCManager.filter(id__isnull=False)
             self.assertEquals(2, len(groups))
 
-            groups = ec2.vpcs.filter(id__isnull=True)
+            groups = VPCManager.filter(id__isnull=True)
             self.assertEquals(0, len(groups))
 
     def test_get_raises(self):
         with self._patch_vpc_connection():
             self.assertRaises(
-                ec2.vpcs.MultipleObjectsReturned,
-                ec2.vpcs.get,
+                VPCManager.MultipleObjectsReturned,
+                VPCManager.get,
                 id__startswith='vpc'
             )
 
             self.assertRaises(
-                ec2.vpcs.DoesNotExist,
-                ec2.vpcs.get,
+                VPCManager.DoesNotExist,
+                VPCManager.get,
                 name='crap'
             )
 
     def test_get(self):
         with self._patch_vpc_connection():
-            self.assertEquals(ec2.vpcs.get(id='vpc-abc0').id, 'vpc-abc0')
+            self.assertEquals(VPCManager.get(id='vpc-abc0').id, 'vpc-abc0')
 
     def test_create(self):
         with self._patch_vpc_connection():
-            vpc = ec2.vpcs.create('10.10.10.0/16')
+            vpc = VPCManager.create('10.10.10.0/16')
             self.assertEquals(vpc.id, 'vpc-xyz0')
 
     def test_delete(self):
         with self._patch_vpc_connection():
-            vpc = ec2.vpcs.create('10.10.10.0/16')
-            self.assertTrue(ec2.vpcs.delete(vpc.id))
+            vpc = VPCManager.create('10.10.10.0/16')
+            self.assertTrue(VPCManager.delete(vpc.id))

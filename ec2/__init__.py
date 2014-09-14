@@ -17,4 +17,4 @@ __license__ = 'BSD'
 __all__ = ('credentials', 'instances', 'security_groups', 'vpcs')
 
 from .connection import credentials  # noqa
-from .types import instances, security_groups, vpcs  # noqa
+from .models import Instance, SecurityGroup, VPC  # noqa

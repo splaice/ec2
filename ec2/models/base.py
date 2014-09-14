@@ -1,12 +1,17 @@
 """
-ec2.base
+ec2.models.base
 ~~~~~~~~
 
 :copyright: (c) 2014 by Matt Robenolt.
 :license: BSD, see LICENSE for more details.
 """
 
-from ec2.helpers import make_compare
+from datetime import datetime, timedelta
+
+from .helpers import make_compare
+
+
+MAX_CACHE_AGE = 60 * 5
 
 
 class _EC2MetaClass(type):
@@ -25,6 +30,14 @@ class objects_base(object):
     __metaclass__ = _EC2MetaClass
 
     @classmethod
+    def is_cache_expired(cls):
+        if hasattr(cls, '_cached_at'):
+            if datetime.utcnow() - cls._cached_at > timedelta(seconds=MAX_CACHE_AGE):
+                return True
+
+        return False
+
+    @classmethod
     def all(cls):
         """
         Wrapper around _all() to cache and return all results of something
@@ -32,8 +45,9 @@ class objects_base(object):
         >>> ec2.instances.all()
         [ ... ]
         """
-        if not hasattr(cls, '_cache'):
+        if not hasattr(cls, '_cache') or cls.is_cache_expired():
             cls._cache = cls._all()
+            cls._cached_at = datetime.utcnow()
         return cls._cache
 
     @classmethod

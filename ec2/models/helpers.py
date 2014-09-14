@@ -1,5 +1,5 @@
 """
-ec2.helpers
+ec2.models.helpers
 ~~~~~~~~~~~
 
 :copyright: (c) 2014 by Matt Robenolt.

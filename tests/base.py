@@ -91,12 +91,12 @@ class BaseTestCase(unittest.TestCase):
         ec2.credentials.ACCESS_KEY_ID = None
         ec2.credentials.SECRET_ACCESS_KEY = None
         ec2.credentials.REGION_NAME = 'us-east-1'
-        ec2.instances.clear()
-        ec2.security_groups.clear()
-        ec2.vpcs.clear()
+        # ec2.instances.clear()
+        # ec2.security_groups.clear()
+        # ec2.vpcs.clear()
 
     def _patch_connection(self):
-        return patch('ec2.types.get_connection', return_value=self.connection)
+        return patch('ec2.models.managers.get_connection', return_value=self.connection)
 
     def _patch_vpc_connection(self):
-        return patch('ec2.types.get_vpc_connection', return_value=self.vpc_connection)
+        return patch('ec2.models.managers.get_vpc_connection', return_value=self.vpc_connection)
