@@ -19,6 +19,7 @@ tests_require = [
     'mock',
     'pytest',
     'pytest-cov',
+    'moto',
 ]
 
 
