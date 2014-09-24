@@ -6,12 +6,7 @@ ec2.models.base
 :license: BSD, see LICENSE for more details.
 """
 
-from datetime import datetime, timedelta
-
 from .helpers import make_compare
-
-
-MAX_CACHE_AGE = 60 * 5
 
 
 class _EC2MetaClass(type):
@@ -30,14 +25,6 @@ class objects_base(object):
     __metaclass__ = _EC2MetaClass
 
     @classmethod
-    def is_cache_expired(cls):
-        if hasattr(cls, '_cached_at'):
-            if datetime.utcnow() - cls._cached_at > timedelta(seconds=MAX_CACHE_AGE):
-                return True
-
-        return False
-
-    @classmethod
     def all(cls):
         """
         Wrapper around _all() to cache and return all results of something
@@ -45,9 +32,8 @@ class objects_base(object):
         >>> ec2.instances.all()
         [ ... ]
         """
-        if not hasattr(cls, '_cache') or cls.is_cache_expired():
+        if not hasattr(cls, '_cache'):
             cls._cache = cls._all()
-            cls._cached_at = datetime.utcnow()
         return cls._cache
 
     @classmethod
@@ -113,8 +99,10 @@ class objects_base(object):
         >>> ec2.vpcs.create('10.10.10.0/16')
         <VPC: ...>
         """
+        if not hasattr(cls, '_cache'):
+            cls.all()
+
         result = cls._create(*args, **kwargs)
-        cls.clear()
         return result
 
     @classmethod
@@ -125,6 +113,7 @@ class objects_base(object):
         >>> ec2.vpcs.delete('vpc-123')
         True
         """
+        if not hasattr(cls, '_cache'):
+            cls.all()
         result = cls._delete(*args, **kwargs)
-        cls.clear()
         return result
