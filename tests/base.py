@@ -79,6 +79,7 @@ class BaseTestCase(unittest.TestCase):
         self.connection.get_all_instances = MagicMock(return_value=reservations)
         self.connection.get_all_security_groups = MagicMock(return_value=security_groups)
         self.connection.create_security_group = MagicMock(return_value=created_sg)
+        self.connection.run_instances = MagicMock(return_value=i1)
 
         self.vpc_connection = MagicMock()
         self.vpc_connection.get_all_vpcs = MagicMock(return_value=vpcs)

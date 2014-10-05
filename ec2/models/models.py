@@ -31,6 +31,18 @@ class Instance(DeleteMixin, OrigInstance):
 class Reservation(DeleteMixin, OrigReservation):
     objects = ReservationManager()
 
+    def delete(self, *args, **kwargs):
+        self.objects.clear()
+        reservation = self.objects.get(id=self.id)
+        instances = [i for i in reservation.instances]
+        self.objects.delete([i.id for i in instances])
+
+    def stop(self, *args, **kwargs):
+        self.objects.clear()
+        reservation = self.objects.get(id=self.id)
+        instances = [i for i in reservation.instances]
+        self.objects.stop([i.id for i in instances])
+
 
 class SecurityGroup(DeleteMixin, OrigSecurityGroup):
     objects = SecurityGroupManager()

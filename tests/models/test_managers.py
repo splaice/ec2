@@ -91,12 +91,12 @@ class InstancesTestCase(BaseTestCase):
             self.assertEquals(InstanceManager.get(id='i-abc0').id, 'i-abc0')
 
     def test_create(self):
-        with self.assertRaises(NotImplementedError):
-            InstanceManager.create('')
+        instance = InstanceManager.create('')
+        self.assertEquals('i-abc1', instance.id)
 
     def test_delete(self):
-        with self.assertRaises(NotImplementedError):
-            InstanceManager.delete('')
+        result = InstanceManager.delete('')
+        print result
 
 
 class SecurityGroupManagerTestCase(BaseTestCase):
